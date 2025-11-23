@@ -49,4 +49,20 @@ requests
 yfinance
 plotly
 beautifulsoup4
+```
+
+接著在終端機執行安裝指令：
+
+```python
+pip install -r requirements.txt
+```
+### 3. 啟動應用程式
+在終端機 (Terminal) 中執行以下指令：
+```python
+streamlit run app.py
+```
+啟動後，瀏覽器將自動開啟並顯示儀表板
+
+## 免責聲明
+本專案提供的所有數據僅供參考，不構成任何投資建議。金融市場數據可能存在延遲或誤差，開發者不對因使用本應用程式而產生的任何盈虧負責。
 
