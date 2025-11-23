@@ -16,7 +16,6 @@ st.set_page_config(
 )
 
 # --- 2. 樣式調整 (CSS) & 自動更新腳本 (JS) ---
-# 這裡加入 JavaScript 讓網頁每 5 分鐘 (300000 毫秒) 自動刷新
 auto_refresh_script = """
     <script>
         var timeLeft = 300000;
@@ -81,7 +80,6 @@ class DataFetcher:
     def _fetch_yahoo_data(tickers, type_label):
         data_list = []
         try:
-            # 抓取 1 年份以配合滑桿
             hist_data = yf.download(list(tickers.values()), period="1y", progress=False, auto_adjust=False, threads=False)
             
             if isinstance(hist_data.columns, pd.MultiIndex):
@@ -164,7 +162,6 @@ class DataFetcher:
             df['Date'] = pd.to_datetime(df['Date'])
         return df
 
-# --- 修改點：快取時間改為 300 秒 (5分鐘) ---
 @st.cache_data(ttl=300, show_spinner="正在同步最新市場數據...")
 def load_all_data():
     df_indices = DataFetcher.fetch_indices()
@@ -183,13 +180,11 @@ def plot_small_chart(df, title, color_hex):
     fig = px.line(df, x='Date', y='Price', render_mode='svg')
     fig.update_traces(line_color=color_hex, line_width=2)
     
-    # --- 修正點：解決 undefined 問題 ---
-    # 明確設定 title_text 為空字串，並設定 margin t=0
     fig.update_layout(
-        title_text="",  # 強制清空標題
+        title_text="",  
         xaxis_title=None, 
         yaxis_title=None,
-        margin=dict(l=0, r=0, t=0, b=20), # t=0 重要！移除上方留白
+        margin=dict(l=0, r=0, t=0, b=20), 
         height=250,
         showlegend=False,
         hovermode="x unified",
@@ -207,7 +202,6 @@ def plot_small_chart(df, title, color_hex):
 
 def render_interactive_page(df, page_title):
     """匯率與原物料的詳細頁面"""
-    # 頂部佈局：左邊標題，右邊更新時間
     c1, c2 = st.columns([3, 1])
     with c1:
         st.header(page_title)
@@ -226,7 +220,6 @@ def render_interactive_page(df, page_title):
     final_df = df[df['Currency'].isin(selected_items)]
     st.markdown("---")
 
-    # KPI
     cols = st.columns(len(selected_items))
     for idx, item in enumerate(selected_items):
         item_data = final_df[final_df['Currency'] == item].sort_values('Date')
@@ -241,7 +234,6 @@ def render_interactive_page(df, page_title):
             with cols[idx % 4]:
                 st.metric(item, f"{curr:,.2f}", delta_str)
 
-    # Big Chart
     fig = px.line(final_df, x='Date', y='Price', color='Currency', 
                  color_discrete_sequence=px.colors.qualitative.Bold, render_mode='svg')
     fig.update_layout(
@@ -281,15 +273,12 @@ def main():
     start_date = end_date - timedelta(days=time_range)
     date_mask = (df_all['Date'] >= start_date) & (df_all['Date'] <= end_date)
 
-    # 頁面渲染邏輯
     if selected_page == "市場總覽":
-        # 頂部佈局：左邊標題，右邊更新時間
         col_header, col_time = st.columns([3, 1])
         with col_header:
             st.header("全球市場總覽")
             st.caption("主要指數儀表板")
         with col_time:
-            # 顯示更新時間
             current_time = datetime.now().strftime("%H:%M:%S")
             st.markdown(f'<div class="last-updated">最後更新: {current_time}<br><span style="font-size:0.7em">(每 5 分鐘自動刷新)</span></div>', unsafe_allow_html=True)
             
